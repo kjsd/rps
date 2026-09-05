@@ -1,0 +1,76 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "Hiragino Sans, Meiryo, sans-serif"
+skinparam defaultFontSize 12
+
+skinparam class {
+    BackgroundColor #F8FAFC
+    BorderColor #2563EB
+    ArrowColor #2563EB
+    HeaderBackgroundColor #DBEAFE
+}
+
+enum Hand {
+    ROCK : グー
+    SCISSORS : チョキ
+    PAPER : パー
+}
+
+enum Judgement {
+    WIN : プレイヤーの勝ち
+    LOSE : プレイヤーの負け
+    DRAW : 引き分け
+}
+
+class Record {
+    + round : int
+    + player_hand : Hand
+    + ai_hand : Hand
+    + result : Judgement
+}
+
+class Director {
+    - player : Player
+    - ai : AI
+    - recorder : Recorder
+    + start_game() : void
+    + play_round(round : int) : Judgement
+    + judge(p_hand : Hand, ai_hand : Hand) : Judgement
+    + display_message(msg : String) : void
+    + display_summary() : void
+}
+
+class Player {
+    + choose_hand() : Hand
+}
+
+class AI {
+    - analyzer : Analyzer
+    + choose_hand() : Hand
+}
+
+class Analyzer {
+    - recorder : Recorder
+    + get_best_hand() : Hand
+    + predict_player_hand() : Hand
+    + analyze_patterns() : Map
+}
+
+class Recorder {
+    - history : List<Record>
+    + add_record(round : int, p : Hand, ai : Hand, res : Judgement) : void
+    + get_history() : List<Record>
+    + get_total_rounds() : int
+    + get_player_hand_counts() : Map
+}
+
+Director --> Player : 手の入力を促す
+Director --> AI : 手の決定を促す
+Director --> Recorder : 結果を記録する
+AI --> Analyzer : 最善手を相談
+Analyzer --> Recorder : 履歴を参照・分析
+Recorder *-- Record : 保持
+Record ..> Hand
+Record ..> Judgement
+
+@enduml

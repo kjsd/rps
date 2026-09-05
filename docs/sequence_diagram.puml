@@ -1,0 +1,53 @@
+@startuml
+skinparam defaultFontName "Hiragino Sans, Meiryo, sans-serif"
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+
+autonumber
+
+actor "👤 プレイヤー\n(人間)" as User
+participant "🎬 Director\n(進行・表示・審判)" as D #E0F2FE
+participant "🙋 Player" as P #FEF3C7
+participant "🤖 AI" as AI #DCFCE7
+participant "🧠 Analyzer\n(観察・分析)" as A #FCE7F3
+participant "📝 Recorder\n(対戦履歴)" as R #F3E8FF
+
+== ラウンド開始 ==
+
+D -> D : 画面に「じゃんけん、最初はグー！」と表示
+
+group #EFF6FF 1. プレイヤーの手を決定
+    D -> P : choose_hand()
+    P -> User : 選択肢を案内 (1:グー, 2:チョキ, 3:パー)
+    User --> P : 入力 (例: 1)
+    P --> D : player_hand (Hand.ROCK)
+end
+
+group #FEF3C7 2. AIの手を決定 (癖読み推論)
+    D -> AI : choose_hand()
+    AI -> A : get_best_hand()
+    A -> R : get_history()
+    R --> A : 過去の対戦ログ一覧
+    note over A #FFFBEB
+        【思考アルゴリズム】
+        過去ログからプレイヤーの傾向を分析
+        例: 相手はグーが多い → パーを選択！
+    end note
+    A --> AI : best_hand (Hand.PAPER)
+    AI --> D : ai_hand (Hand.PAPER)
+end
+
+group #ECFDF5 3. 開示・判定 (審判) ・結果表示
+    D -> D : 画面に双方の手を表示\n「あなた: ✊ グー vs AI: ✋ パー」
+    D -> D : judge(player_hand, ai_hand)\n→ 勝敗判定 (Judgement.LOSE)
+    D -> D : 画面に判定結果を表示\n「AIの勝ち！AIはあなたの癖を見抜いたようです！」
+end
+
+group #FAF5FF 4. 履歴の保存
+    D -> R : add_record(round, player_hand, ai_hand, result)
+    R --> D : 保存完了
+end
+
+note over D : 次のラウンドへループ (または総合結果表示)
+
+@enduml
