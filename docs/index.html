@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>AIじゃんけんシステム 設計仕様書</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 14mm 15mm 15mm 15mm;
+      @bottom-right {
+        content: counter(page) " / " counter(pages);
+        font-size: 8.5pt;
+        color: #64748b;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.55;
+      color: #1e293b;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+      font-size: 9.8pt;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .header-box {
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: 19pt;
+      margin: 0 0 4px 0;
+      color: #1e3a8a;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      font-size: 10.5pt;
+      color: #475569;
+      margin: 0;
+      font-weight: 500;
+    }
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5pt;
+      color: #64748b;
+      margin-top: 8px;
+    }
+    h2 {
+      font-size: 12pt;
+      color: #1e40af;
+      border-left: 4px solid #2563eb;
+      padding-left: 8px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 10.5pt;
+      color: #0f172a;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      page-break-after: avoid;
+    }
+    p, ul, ol {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    ul, ol {
+      padding-left: 18px;
+    }
+    li {
+      margin-bottom: 3px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 9pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .diagram-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      page-break-inside: avoid;
+    }
+    .card {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 12px;
+      font-size: 9pt;
+    }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      color: #b91c1c;
+      font-weight: 500;
+    }
+    .badge {
+      display: inline-block;
+      padding: 1.5px 7px;
+      font-size: 8pt;
+      font-weight: 600;
+      border-radius: 9999px;
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    .footer-note {
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px dashed #cbd5e1;
+      font-size: 8.5pt;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- PAGE 1: 概要 & モジュール定義 -->
+    <div class="header-box">
+      <h1>✊✌️✋ AIじゃんけんシステム 設計仕様書</h1>
+      <p class="subtitle">文化祭展示向け：対戦相手の癖を分析して進化する適応型AIじゃんけん</p>
+      <div class="meta-bar">
+        <span>作成: 東白川村プログラミング教室 (Kitt Project)</span>
+        <span>手法: オブジェクト指向 (責務の分離) / UML</span>
+        <span>日付: 2026年9月</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <strong>💡 本ドキュメントの目的</strong><br>
+      いきなりコードを書き始めるのではなく、「どんな役割の部品（オブジェクト）が必要か」「それらがどう連携して動くか」を明確に設計し、拡張しやすく美しいプログラムを組み立てるための仕様書です。
+    </div>
+
+    <h2>1. システムコンセプト & 開発方針</h2>
+    <ul>
+      <li><strong>だんだん強くなるAI（適応型アルゴリズム）:</strong><br>
+        初めはランダムに手を出しますが、対戦を重ねるにつれて相手の癖（最頻手、直前の手からの傾向）を分析し、裏をかく手を打つようになります。
+      </li>
+      <li><strong>単一責任の原則（関心の分離: Separation of Concerns）:</strong><br>
+        1つの巨大なファイルにすべてを詰め込むのではなく、独立した5つのモジュールに分割します。これにより「AIの頭脳だけを強化する」「画面表示をカッコよくする」といった改良が安全かつ簡単に行えます。
+      </li>
+    </ul>
+
+    <h2>2. モジュール（クラス）一覧と責務</h2>
+    <p>本システムは、明確な役割を持った以下の <strong>5つのコアモジュール</strong> で構成されます。</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 22%;">モジュール名</th>
+          <th style="width: 26%;">担当役割</th>
+          <th>詳細な責務（何をする人か）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Director</strong></td>
+          <td>司令塔・進行・表示・審判</td>
+          <td>ゲームループ全体の進行管理、コンソールへのメッセージ出力、およびルールに従った勝敗判定を行うマスターモジュール。いわゆる <code>main</code> を司る。</td>
+        </tr>
+        <tr>
+          <td><strong>Player</strong></td>
+          <td>プレイヤー入力管理</td>
+          <td>人間（ユーザー）から手の入力を受け付け、有効な手（グー・チョキ・パー）として確定させる。</td>
+        </tr>
+        <tr>
+          <td><strong>AI</strong></td>
+          <td>AIプレイヤー管理</td>
+          <td>対戦相手となるAIの手出しを管理する。実際の手の決定は <code>Analyzer</code> に相談する。</td>
+        </tr>
+        <tr>
+          <td><strong>Analyzer</strong></td>
+          <td>観察・分析・推論エンジン</td>
+          <td><code>Recorder</code> の過去ログを解析し、相手の癖を見抜いて最善手を算出するAIの「頭脳」。</td>
+        </tr>
+        <tr>
+          <td><strong>Recorder</strong></td>
+          <td>対戦履歴データベース</td>
+          <td>毎ラウンドの「プレイヤーの手」「AIの手」「勝敗結果」を時系列ログとして保存・蓄積する。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- PAGE 2: クラス構造図 -->
+    <div class="page-break"></div>
+
+    <h2>3. クラス構造図（Class Diagram）</h2>
+    <p>各クラスが持つ属性（データ）とメソッド（処理）、およびクラス同士の関連性を示します。</p>
+
+    <div class="diagram-container">
+      <svg style="max-height: 480px; width: auto; max-width: 100%;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="CLASS" style="width:557px;height:1147px;background:#FFFFFF;" width="557px" height="1147px" viewBox="0 0 557 1147" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.7?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><!--class Hand--><g class="entity" data-qualified-name="Hand" id="ent0001" data-source-line="12"><rect x="190.86" y="1032" width="121.296" height="100" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="190.86" y="1032" width="121.296" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="190.86" y="1059.5" width="121.296" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="190.86" y="1032" width="121.296" height="100" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="231.811" cy="1047" rx="10" ry="10" fill="#EB937F" style="stroke:#181818;stroke-width:1;"/><path d="M234.745,1051.5 L229.296,1051.5 L229.296,1042.752 L234.745,1042.752 L234.745,1044.275 L231.024,1044.275 L231.024,1046.162 L234.393,1046.162 L234.393,1047.686 L231.024,1047.686 L231.024,1049.977 L234.745,1049.977 Z " fill="#000"/><text x="250.801" y="1054.56" fill="#000" font-size="12" textLength="31.404" font-family="'Hiragino Sans, Meiryo, sans-serif'">Hand</text><line x1="191.86" y1="1062" x2="311.156" y2="1062" style="stroke:#2563EB;stroke-width:0.5;"/><text x="196.86" y="1082.56" fill="#000" font-size="12" textLength="70.68" font-family="'Hiragino Sans, Meiryo, sans-serif'">ROCK : グー</text><text x="196.86" y="1100.56" fill="#000" font-size="12" textLength="109.296" font-family="'Hiragino Sans, Meiryo, sans-serif'">SCISSORS : チョキ</text><text x="196.86" y="1118.56" fill="#000" font-size="12" textLength="76.188" font-family="'Hiragino Sans, Meiryo, sans-serif'">PAPER : パー</text><line x1="191.86" y1="1124" x2="311.156" y2="1124" style="stroke:#2563EB;stroke-width:0.5;"/></g><!--class Judgement--><g class="entity" data-qualified-name="Judgement" id="ent0002" data-source-line="18"><rect x="346.82" y="1032" width="151.38" height="100" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="346.82" y="1032" width="151.38" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="346.82" y="1059.5" width="151.38" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="346.82" y="1032" width="151.38" height="100" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="385.579" cy="1047" rx="10" ry="10" fill="#EB937F" style="stroke:#181818;stroke-width:1;"/><path d="M388.513,1051.5 L383.063,1051.5 L383.063,1042.752 L388.513,1042.752 L388.513,1044.275 L384.792,1044.275 L384.792,1046.162 L388.161,1046.162 L388.161,1047.686 L384.792,1047.686 L384.792,1049.977 L388.513,1049.977 Z " fill="#000"/><text x="404.081" y="1054.56" fill="#000" font-size="12" textLength="66.36" font-family="'Hiragino Sans, Meiryo, sans-serif'">Judgement</text><line x1="347.82" y1="1062" x2="497.2" y2="1062" style="stroke:#2563EB;stroke-width:0.5;"/><text x="352.82" y="1082.56" fill="#000" font-size="12" textLength="131.22" font-family="'Hiragino Sans, Meiryo, sans-serif'">WIN : プレイヤーの勝ち</text><text x="352.82" y="1100.56" fill="#000" font-size="12" textLength="139.38" font-family="'Hiragino Sans, Meiryo, sans-serif'">LOSE : プレイヤーの負け</text><text x="352.82" y="1118.56" fill="#000" font-size="12" textLength="97.752" font-family="'Hiragino Sans, Meiryo, sans-serif'">DRAW : 引き分け</text><line x1="347.82" y1="1124" x2="497.2" y2="1124" style="stroke:#2563EB;stroke-width:0.5;"/></g><!--class Record--><g class="entity" data-qualified-name="Record" id="ent0003" data-source-line="24"><rect x="269.54" y="853" width="133.944" height="118" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="269.54" y="853" width="133.944" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="269.54" y="880.5" width="133.944" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="269.54" y="853" width="133.944" height="118" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="310.954" cy="868" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M312.788,872.248 Q312.378,872.459 311.927,872.564 Q311.475,872.67 310.977,872.67 Q309.208,872.67 308.276,871.504 Q307.345,870.338 307.345,868.135 Q307.345,865.926 308.276,864.76 Q309.208,863.594 310.977,863.594 Q311.475,863.594 311.933,863.699 Q312.39,863.805 312.788,864.016 L312.788,865.938 Q312.343,865.527 311.924,865.337 Q311.505,865.146 311.059,865.146 Q310.11,865.146 309.627,865.899 Q309.143,866.652 309.143,868.135 Q309.143,869.611 309.627,870.364 Q310.11,871.117 311.059,871.117 Q311.505,871.117 311.924,870.927 Q312.343,870.736 312.788,870.326 Z " fill="#000"/><text x="329.954" y="875.56" fill="#000" font-size="12" textLength="43.116" font-family="'Hiragino Sans, Meiryo, sans-serif'">Record</text><line x1="270.54" y1="883" x2="402.484" y2="883" style="stroke:#2563EB;stroke-width:0.5;"/><text x="275.54" y="903.56" fill="#000" font-size="12" textLength="68.964" font-family="'Hiragino Sans, Meiryo, sans-serif'">+round : int</text><text x="275.54" y="921.56" fill="#000" font-size="12" textLength="121.944" font-family="'Hiragino Sans, Meiryo, sans-serif'">+player_hand : Hand</text><text x="275.54" y="939.56" fill="#000" font-size="12" textLength="95.388" font-family="'Hiragino Sans, Meiryo, sans-serif'">+ai_hand : Hand</text><text x="275.54" y="957.56" fill="#000" font-size="12" textLength="118.668" font-family="'Hiragino Sans, Meiryo, sans-serif'">+result : Judgement</text><line x1="270.54" y1="963" x2="402.484" y2="963" style="stroke:#2563EB;stroke-width:0.5;"/></g><!--class Director--><g class="entity" data-qualified-name="Director" id="ent0004" data-source-line="31"><rect x="106.18" y="7" width="318.66" height="190" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="106.18" y="7" width="318.66" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="106.18" y="34.5" width="318.66" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="106.18" y="7" width="318.66" height="190" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="237.276" cy="22" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M239.11,26.248 Q238.7,26.459 238.249,26.564 Q237.797,26.67 237.299,26.67 Q235.53,26.67 234.598,25.504 Q233.667,24.338 233.667,22.135 Q233.667,19.926 234.598,18.76 Q235.53,17.594 237.299,17.594 Q237.797,17.594 238.255,17.699 Q238.712,17.805 239.11,18.016 L239.11,19.938 Q238.665,19.527 238.246,19.337 Q237.827,19.146 237.381,19.146 Q236.432,19.146 235.949,19.899 Q235.465,20.652 235.465,22.135 Q235.465,23.611 235.949,24.364 Q236.432,25.117 237.381,25.117 Q237.827,25.117 238.246,24.927 Q238.665,24.736 239.11,24.326 Z " fill="#000"/><text x="256.276" y="29.56" fill="#000" font-size="12" textLength="48.468" font-family="'Hiragino Sans, Meiryo, sans-serif'">Director</text><line x1="107.18" y1="37" x2="423.84" y2="37" style="stroke:#2563EB;stroke-width:0.5;"/><text x="112.18" y="57.56" fill="#000" font-size="12" textLength="87.972" font-family="'Hiragino Sans, Meiryo, sans-serif'">-player : Player</text><text x="112.18" y="75.56" fill="#000" font-size="12" textLength="36.912" font-family="'Hiragino Sans, Meiryo, sans-serif'">-ai : AI</text><text x="112.18" y="93.56" fill="#000" font-size="12" textLength="122.28" font-family="'Hiragino Sans, Meiryo, sans-serif'">-recorder : Recorder</text><line x1="107.18" y1="99" x2="423.84" y2="99" style="stroke:#2563EB;stroke-width:0.5;"/><text x="112.18" y="119.56" fill="#000" font-size="12" textLength="118.668" font-family="'Hiragino Sans, Meiryo, sans-serif'">+start_game() : void</text><text x="112.18" y="137.56" fill="#000" font-size="12" textLength="220.092" font-family="'Hiragino Sans, Meiryo, sans-serif'">+play_round(round : int) : Judgement</text><text x="112.18" y="155.56" fill="#000" font-size="12" textLength="306.66" font-family="'Hiragino Sans, Meiryo, sans-serif'">+judge(p_hand : Hand, ai_hand : Hand) : Judgement</text><text x="112.18" y="173.56" fill="#000" font-size="12" textLength="223.884" font-family="'Hiragino Sans, Meiryo, sans-serif'">+display_message(msg : String) : void</text><text x="112.18" y="191.56" fill="#000" font-size="12" textLength="153.996" font-family="'Hiragino Sans, Meiryo, sans-serif'">+display_summary() : void</text></g><!--class Player--><g class="entity" data-qualified-name="Player" id="ent0005" data-source-line="42"><rect x="7" y="286" width="149.016" height="64" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="7" y="286" width="149.016" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="7" y="313.5" width="149.016" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="7" y="286" width="149.016" height="64" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="59.262" cy="301" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M61.096,305.248 Q60.686,305.459 60.235,305.564 Q59.783,305.67 59.285,305.67 Q57.516,305.67 56.584,304.504 Q55.653,303.338 55.653,301.135 Q55.653,298.926 56.584,297.76 Q57.516,296.594 59.285,296.594 Q59.783,296.594 60.241,296.699 Q60.698,296.805 61.096,297.016 L61.096,298.938 Q60.651,298.527 60.232,298.337 Q59.813,298.146 59.367,298.146 Q58.418,298.146 57.935,298.899 Q57.451,299.652 57.451,301.135 Q57.451,302.611 57.935,303.364 Q58.418,304.117 59.367,304.117 Q59.813,304.117 60.232,303.927 Q60.651,303.736 61.096,303.326 Z " fill="#000"/><text x="78.262" y="308.56" fill="#000" font-size="12" textLength="36.492" font-family="'Hiragino Sans, Meiryo, sans-serif'">Player</text><line x1="8" y1="316" x2="155.016" y2="316" style="stroke:#2563EB;stroke-width:0.5;"/><line x1="8" y1="324" x2="155.016" y2="324" style="stroke:#2563EB;stroke-width:0.5;"/><text x="13" y="344.56" fill="#000" font-size="12" textLength="137.016" font-family="'Hiragino Sans, Meiryo, sans-serif'">+choose_hand() : Hand</text></g><!--class AI--><g class="entity" data-qualified-name="AI" id="ent0006" data-source-line="46"><rect x="191" y="277" width="149.016" height="82" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="191" y="277" width="149.016" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="191" y="304.5" width="149.016" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="191" y="277" width="149.016" height="82" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="255.514" cy="292" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M257.348,296.248 Q256.938,296.459 256.487,296.564 Q256.035,296.67 255.537,296.67 Q253.768,296.67 252.836,295.504 Q251.905,294.338 251.905,292.135 Q251.905,289.926 252.836,288.76 Q253.768,287.594 255.537,287.594 Q256.035,287.594 256.493,287.699 Q256.95,287.805 257.348,288.016 L257.348,289.938 Q256.903,289.527 256.484,289.337 Q256.065,289.146 255.619,289.146 Q254.67,289.146 254.187,289.899 Q253.703,290.652 253.703,292.135 Q253.703,293.611 254.187,294.364 Q254.67,295.117 255.619,295.117 Q256.065,295.117 256.484,294.927 Q256.903,294.736 257.348,294.326 Z " fill="#000"/><text x="274.514" y="299.56" fill="#000" font-size="12" textLength="11.988" font-family="'Hiragino Sans, Meiryo, sans-serif'">AI</text><line x1="192" y1="307" x2="339.016" y2="307" style="stroke:#2563EB;stroke-width:0.5;"/><text x="197" y="327.56" fill="#000" font-size="12" textLength="114.948" font-family="'Hiragino Sans, Meiryo, sans-serif'">-analyzer : Analyzer</text><line x1="192" y1="333" x2="339.016" y2="333" style="stroke:#2563EB;stroke-width:0.5;"/><text x="197" y="353.56" fill="#000" font-size="12" textLength="137.016" font-family="'Hiragino Sans, Meiryo, sans-serif'">+choose_hand() : Hand</text></g><!--class Analyzer--><g class="entity" data-qualified-name="Analyzer" id="ent0007" data-source-line="51"><rect x="160.14" y="439" width="190.728" height="118" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="160.14" y="439" width="190.728" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="160.14" y="466.5" width="190.728" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="160.14" y="439" width="190.728" height="118" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="226.034" cy="454" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M227.868,458.248 Q227.458,458.459 227.007,458.564 Q226.555,458.67 226.057,458.67 Q224.288,458.67 223.356,457.504 Q222.425,456.338 222.425,454.135 Q222.425,451.926 223.356,450.76 Q224.288,449.594 226.057,449.594 Q226.555,449.594 227.013,449.699 Q227.47,449.805 227.868,450.016 L227.868,451.938 Q227.423,451.527 227.004,451.337 Q226.585,451.146 226.139,451.146 Q225.19,451.146 224.707,451.899 Q224.223,452.652 224.223,454.135 Q224.223,455.611 224.707,456.364 Q225.19,457.117 226.139,457.117 Q226.585,457.117 227.004,456.927 Q227.423,456.736 227.868,456.326 Z " fill="#000"/><text x="245.034" y="461.56" fill="#000" font-size="12" textLength="50.94" font-family="'Hiragino Sans, Meiryo, sans-serif'">Analyzer</text><line x1="161.14" y1="469" x2="349.868" y2="469" style="stroke:#2563EB;stroke-width:0.5;"/><text x="166.14" y="489.56" fill="#000" font-size="12" textLength="122.28" font-family="'Hiragino Sans, Meiryo, sans-serif'">-recorder : Recorder</text><line x1="161.14" y1="495" x2="349.868" y2="495" style="stroke:#2563EB;stroke-width:0.5;"/><text x="166.14" y="515.56" fill="#000" font-size="12" textLength="145.596" font-family="'Hiragino Sans, Meiryo, sans-serif'">+get_best_hand() : Hand</text><text x="166.14" y="533.56" fill="#000" font-size="12" textLength="178.728" font-family="'Hiragino Sans, Meiryo, sans-serif'">+predict_player_hand() : Hand</text><text x="166.14" y="551.56" fill="#000" font-size="12" textLength="153.132" font-family="'Hiragino Sans, Meiryo, sans-serif'">+analyze_patterns() : Map</text></g><!--class Recorder--><g class="entity" data-qualified-name="Recorder" id="ent0008" data-source-line="58"><rect x="130.71" y="637" width="411.588" height="136" fill="#F8FAFC" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="130.71" y="637" width="411.588" height="30" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="130.71" y="664.5" width="411.588" height="2.5" fill="#DBEAFE" style="stroke:#DBEAFE;stroke-width:0.5;"/><rect x="130.71" y="637" width="411.588" height="136" fill="none" style="stroke:#2563EB;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="304.838" cy="652" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M306.672,656.248 Q306.262,656.459 305.811,656.564 Q305.36,656.67 304.861,656.67 Q303.092,656.67 302.16,655.504 Q301.229,654.338 301.229,652.135 Q301.229,649.926 302.16,648.76 Q303.092,647.594 304.861,647.594 Q305.36,647.594 305.817,647.699 Q306.274,647.805 306.672,648.016 L306.672,649.938 Q306.227,649.527 305.808,649.337 Q305.389,649.146 304.943,649.146 Q303.994,649.146 303.511,649.899 Q303.027,650.652 303.027,652.135 Q303.027,653.611 303.511,654.364 Q303.994,655.117 304.943,655.117 Q305.389,655.117 305.808,654.927 Q306.227,654.736 306.672,654.326 Z " fill="#000"/><text x="323.838" y="659.56" fill="#000" font-size="12" textLength="55.332" font-family="'Hiragino Sans, Meiryo, sans-serif'">Recorder</text><line x1="131.71" y1="667" x2="541.298" y2="667" style="stroke:#2563EB;stroke-width:0.5;"/><text x="136.71" y="687.56" fill="#000" font-size="12" textLength="132.516" font-family="'Hiragino Sans, Meiryo, sans-serif'">-history : List&lt;Record></text><line x1="131.71" y1="693" x2="541.298" y2="693" style="stroke:#2563EB;stroke-width:0.5;"/><text x="136.71" y="713.56" fill="#000" font-size="12" textLength="399.588" font-family="'Hiragino Sans, Meiryo, sans-serif'">+add_record(round : int, p : Hand, ai : Hand, res : Judgement) : void</text><text x="136.71" y="731.56" fill="#000" font-size="12" textLength="170.1" font-family="'Hiragino Sans, Meiryo, sans-serif'">+get_history() : List&lt;Record></text><text x="136.71" y="749.56" fill="#000" font-size="12" textLength="142.02" font-family="'Hiragino Sans, Meiryo, sans-serif'">+get_total_rounds() : int</text><text x="136.71" y="767.56" fill="#000" font-size="12" textLength="196.98" font-family="'Hiragino Sans, Meiryo, sans-serif'">+get_player_hand_counts() : Map</text></g><!--link Director to Player--><g class="link" data-entity-1="ent0004" data-entity-2="ent0005" id="lnk9" data-source-line="66" data-link-type="dependency"><path d="M184.27,197.49 C156.93,229.29 131.559,258.788 111.489,282.138" style="stroke:#2563EB;stroke-width:1;" fill="none" id="Director-to-Player" codeLine="66"/><polygon points="108.23,285.93,117.13,281.712,111.489,282.138,111.063,276.497,108.23,285.93" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="158.03" y="244.56" fill="#000" font-size="12" textLength="84" font-family="'Hiragino Sans, Meiryo, sans-serif'">手の入力を促す</text></g><!--link Director to AI--><g class="link" data-entity-1="ent0004" data-entity-2="ent0006" id="lnk10" data-source-line="67" data-link-type="dependency"><path d="M265.51,197.49 C265.51,225.25 265.51,249.16 265.51,271.59" style="stroke:#2563EB;stroke-width:1;" fill="none" id="Director-to-AI" codeLine="67"/><polygon points="265.51,276.59,269.51,267.59,265.51,271.59,261.51,267.59,265.51,276.59" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="266.51" y="244.56" fill="#000" font-size="12" textLength="84" font-family="'Hiragino Sans, Meiryo, sans-serif'">手の決定を促す</text></g><!--link Director to Recorder--><g class="link" data-entity-1="ent0004" data-entity-2="ent0008" id="lnk11" data-source-line="68" data-link-type="dependency"><path d="M345.32,197.22 C350.88,206.87 355.75,216.87 359.51,227 C418.28,385.63 417.96,441.8 381.51,607 C379.33,616.88 377.871,622.297 374.041,632.027" style="stroke:#2563EB;stroke-width:1;" fill="none" id="Director-to-Recorder" codeLine="68"/><polygon points="372.21,636.68,379.228,629.771,374.041,632.027,371.784,626.84,372.21,636.68" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="406.77" y="406.56" fill="#000" font-size="12" textLength="84" font-family="'Hiragino Sans, Meiryo, sans-serif'">結果を記録する</text></g><!--link AI to Analyzer--><g class="link" data-entity-1="ent0006" data-entity-2="ent0007" id="lnk12" data-source-line="69" data-link-type="dependency"><path d="M263.24,359.39 C261.92,382.78 260.531,407.628 259.071,433.548" style="stroke:#2563EB;stroke-width:1;" fill="none" id="AI-to-Analyzer" codeLine="69"/><polygon points="258.79,438.54,263.29,429.779,259.071,433.548,255.302,429.329,258.79,438.54" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="262.4" y="406.56" fill="#000" font-size="12" textLength="72" font-family="'Hiragino Sans, Meiryo, sans-serif'">最善手を相談</text></g><!--link Analyzer to Recorder--><g class="link" data-entity-1="ent0007" data-entity-2="ent0008" id="lnk13" data-source-line="70" data-link-type="dependency"><path d="M265.01,557.45 C268.6,573.8 273.35,591.36 279.51,607 C283.41,616.91 285.886,622.574 291.056,632.314" style="stroke:#2563EB;stroke-width:1;" fill="none" id="Analyzer-to-Recorder" codeLine="70"/><polygon points="293.4,636.73,292.714,626.905,291.056,632.314,285.647,630.656,293.4,636.73" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="280.51" y="604.56" fill="#000" font-size="12" textLength="96" font-family="'Hiragino Sans, Meiryo, sans-serif'">履歴を参照・分析</text></g><!--reverse link Recorder to Record--><g class="link" data-entity-1="ent0008" data-entity-2="ent0003" id="lnk14" data-source-line="71" data-link-type="composition"><path d="M336.51,785.41 C336.51,810.97 336.51,827.83 336.51,852.5" style="stroke:#2563EB;stroke-width:1;" fill="none" id="Recorder-backto-Record" codeLine="71"/><polygon points="336.51,773.41,332.51,779.41,336.51,785.41,340.51,779.41,336.51,773.41" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="337.51" y="820.56" fill="#000" font-size="12" textLength="24" font-family="'Hiragino Sans, Meiryo, sans-serif'">保持</text></g><!--link Record to Hand--><g class="link" data-entity-1="ent0003" data-entity-2="ent0001" id="lnk15" data-source-line="72" data-link-type="dependency"><path d="M307.02,971.29 C297.04,991 288.267,1008.338 278.687,1027.278" style="stroke:#2563EB;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="Record-to-Hand" codeLine="72"/><polygon points="276.43,1031.74,284.062,1025.514,278.687,1027.278,276.923,1021.903,276.43,1031.74" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/></g><!--link Record to Judgement--><g class="link" data-entity-1="ent0003" data-entity-2="ent0002" id="lnk16" data-source-line="73" data-link-type="dependency"><path d="M366.35,971.29 C376.44,991 385.323,1008.349 395.013,1027.289" style="stroke:#2563EB;stroke-width:1;stroke-dasharray:7,7;" fill="none" id="Record-to-Judgement" codeLine="73"/><polygon points="397.29,1031.74,396.752,1021.906,395.013,1027.289,389.63,1025.55,397.29,1031.74" fill="#2563EB" style="stroke:#2563EB;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/></g><?plantuml-src ZPJjJzD07CVVzw-uu1lGZIX6OuWXAMCBKs1aVS7BvcYFSRAsozrDCuY9wyGdC0A9Zpn44mac2X6YYL4I_fYZ0_yBhzTRLyQCBdjnz_jz-lqzjdGEknL8e0EiCgHKPupWwIf3USjp3JoFm6MDneYDPc2rp7AUooQWWq3FA2QmX5qF6D2bAJ2ECAbvAK35BKqHmJCztP-MobS6j8HNXWSB6X2_OMZDbOXNTUsCL_O8k92xaTDpcSZd4HiHPH-uTlrgTbZQTKAyU-VDemWA_9pWo71MpsMr-vg6tAe3Hg5hgzZ5GkOs60JS_yeRXz9YPFA6KIWQeRLHvuqTxkzAnwG-cIrAwsh8jiHkLUqISf3BbE9KVa92htdZ2_S_yeRu7_BwNh2qoUiV939MCB9TcTE3zxo-AfcHeZubcE3m9Qy_3vuy2kqYPDIt8h94NrJ0Iq2MAc3iCcMfb64D4NCMIdjOht90tCL841MJ4hQubdQe4KoGnKGJes1f9ItWINbGLeY5HS-h6v7vIQgeZYeKPP0mioJMgRTFUEzws4waRCfAUXFrz9t9AYBlXFVUIhAGL4TXtHwpCPKn74Gf508EBGdA46-0M-h8fONIgkD0Kckd6hSbAZwUW3NhUHJ932Gicnl3UZxk7dHXkJOlEwEhu_z9j9vR-6UBIuYPquYo3YdLPO9iR34piI2TY4hHh436476fz8_3IkVw9PAPnLIiI4rmO-9qC_8FjVHisuooJGus1Ig9sSL7iOh9qNNC9InDnP9PTOaM8inZi1pjKfHz-yK8tOdQJKj0x4o9ySAdqqEjCG-2vjEby1rUt0wUhND_xVYemUjlpx9YoYskkVyps7lt5wxOdjp9zvNcreRWJZ-z-Rry853kBsb2IEgrLwMvyI1uzJ3KzjTErd-SVdwinTuEoM1_kxdxJN312_zaSOStVecFHtDhHOkPY-bqwmCo28wFDflBTUK4_Vr3qIOaxktNw0y0?></g></svg>
+    </div>
+
+    <div class="card" style="margin-top: 10px;">
+      <strong>🔍 クラス設計の注目ポイント</strong><br>
+      ・<strong>Director の集約:</strong> <code>Player</code>, <code>AI</code>, <code>Recorder</code> を所有し、ゲーム全体をコントロールします。<br>
+      ・<strong>Strategy パターン:</strong> <code>AI</code> は思考ロジックを直接書かず、<code>Analyzer</code> に委譲しています。これにより、AI本体のコードを変えずに「賢さのアルゴリズム」だけを自由自在に差し替えることができます。
+    </div>
+
+    <!-- PAGE 3: シーケンス図 -->
+    <div class="page-break"></div>
+
+    <h2>4. 処理の流れ：シーケンス図（Sequence Diagram）</h2>
+    <p>1回の勝負（1ラウンド）の中で、各オブジェクトがどのようにメッセージをやりとりするかを表した図です。</p>
+
+    <div class="diagram-container">
+      <svg style="max-height: 520px; width: auto; max-width: 100%;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="SEQUENCE" style="width:1008px;height:1199px;background:#FFFFFF;" width="1008px" height="1199px" viewBox="0 0 1008 1199" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.7?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><rect x="36.998" y="209" width="526.306" height="158" fill="#EFF6FF" style="stroke:#EFF6FF;stroke-width:1;"/><rect x="36.998" y="209" width="526.306" height="158" fill="none" style="stroke:#000;stroke-width:1.5;"/><rect x="149.268" y="385" width="819.504" height="296" fill="#FEF3C7" style="stroke:#FEF3C7;stroke-width:1;"/><rect x="149.268" y="385" width="819.504" height="296" fill="none" style="stroke:#000;stroke-width:1.5;"/><rect x="149.268" y="699" width="353.792" height="219" fill="#ECFDF5" style="stroke:#ECFDF5;stroke-width:1;"/><rect x="149.268" y="699" width="353.792" height="219" fill="none" style="stroke:#000;stroke-width:1.5;"/><rect x="149.268" y="936" width="819.504" height="94" fill="#FAF5FF" style="stroke:#FAF5FF;stroke-width:1;"/><rect x="149.268" y="936" width="819.504" height="94" fill="none" style="stroke:#000;stroke-width:1.5;"/><g><title>. .....</title><rect x="49.498" y="106" width="8" height="986" fill="#000" fill-opacity="0"/><line x1="52.998" y1="106" x2="52.998" y2="1092" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"/></g><g><title>. Director</title><rect x="161.768" y="106" width="8" height="986" fill="#000" fill-opacity="0"/><line x1="165.268" y1="106" x2="165.268" y2="1092" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"/></g><g><title>. Player</title><rect x="543.804" y="106" width="8" height="986" fill="#000" fill-opacity="0"/><line x1="547.304" y1="106" x2="547.304" y2="1092" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"/></g><g><title>. AI</title><rect x="612.04" y="106" width="8" height="986" fill="#000" fill-opacity="0"/><line x1="615.54" y1="106" x2="615.54" y2="1092" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"/></g><g><title>. Analyzer</title><rect x="805.388" y="106" width="8" height="986" fill="#000" fill-opacity="0"/><line x1="808.888" y1="106" x2="808.888" y2="1092" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"/></g><g><title>. Recorder</title><rect x="949.272" y="106" width="8" height="986" fill="#000" fill-opacity="0"/><line x1="952.772" y1="106" x2="952.772" y2="1092" style="stroke:#181818;stroke-width:0.5;stroke-dasharray:5,5;"/></g><text x="10" y="86.56" fill="#000" font-size="12" textLength="79.996" font-family="'Hiragino Sans, Meiryo, sans-serif'">👤 プレイヤー</text><text x="33.726" y="104.56" fill="#000" font-size="12" textLength="32.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(人間)</text><ellipse cx="52.998" cy="18.5" rx="8" ry="8" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;"/><path d="M52.998,26.5 L52.998,53.5 M39.998,34.5 L65.998,34.5 M52.998,53.5 L39.998,68.5 M52.998,53.5 L65.998,68.5" style="stroke:#181818;stroke-width:0.5;" fill="none"/><rect x="105.996" y="55" width="118.544" height="50" fill="#E0F2FE" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="131.036" y="78.56" fill="#000" font-size="12" textLength="68.464" font-family="'Hiragino Sans, Meiryo, sans-serif'">🎬 Director</text><text x="112.996" y="96.56" fill="#000" font-size="12" textLength="104.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(進行・表示・審判)</text><rect x="512.06" y="73" width="70.488" height="32" fill="#FEF3C7" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="519.06" y="96.56" fill="#000" font-size="12" textLength="56.488" font-family="'Hiragino Sans, Meiryo, sans-serif'">🙋 Player</text><rect x="592.548" y="73" width="45.984" height="32" fill="#DCFCE7" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="599.548" y="96.56" fill="#000" font-size="12" textLength="31.984" font-family="'Hiragino Sans, Meiryo, sans-serif'">🤖 AI</text><rect x="766.42" y="55" width="84.936" height="50" fill="#FCE7F3" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="773.42" y="78.56" fill="#000" font-size="12" textLength="70.936" font-family="'Hiragino Sans, Meiryo, sans-serif'">🧠 Analyzer</text><text x="774.616" y="96.56" fill="#000" font-size="12" textLength="68.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(観察・分析)</text><rect x="908.108" y="55" width="89.328" height="50" fill="#F3E8FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="915.108" y="78.56" fill="#000" font-size="12" textLength="75.328" font-family="'Hiragino Sans, Meiryo, sans-serif'">📝 Recorder</text><text x="924.5" y="96.56" fill="#000" font-size="12" textLength="56.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(対戦履歴)</text><text x="10" y="1108.56" fill="#000" font-size="12" textLength="79.996" font-family="'Hiragino Sans, Meiryo, sans-serif'">👤 プレイヤー</text><text x="33.726" y="1126.56" fill="#000" font-size="12" textLength="32.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(人間)</text><ellipse cx="52.998" cy="1136.5" rx="8" ry="8" fill="#E2E2F0" style="stroke:#181818;stroke-width:0.5;"/><path d="M52.998,1144.5 L52.998,1171.5 M39.998,1152.5 L65.998,1152.5 M52.998,1171.5 L39.998,1186.5 M52.998,1171.5 L65.998,1186.5" style="stroke:#181818;stroke-width:0.5;" fill="none"/><rect x="105.996" y="1092" width="118.544" height="50" fill="#E0F2FE" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="131.036" y="1115.56" fill="#000" font-size="12" textLength="68.464" font-family="'Hiragino Sans, Meiryo, sans-serif'">🎬 Director</text><text x="112.996" y="1133.56" fill="#000" font-size="12" textLength="104.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(進行・表示・審判)</text><rect x="512.06" y="1092" width="70.488" height="32" fill="#FEF3C7" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="519.06" y="1115.56" fill="#000" font-size="12" textLength="56.488" font-family="'Hiragino Sans, Meiryo, sans-serif'">🙋 Player</text><rect x="592.548" y="1092" width="45.984" height="32" fill="#DCFCE7" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="599.548" y="1115.56" fill="#000" font-size="12" textLength="31.984" font-family="'Hiragino Sans, Meiryo, sans-serif'">🤖 AI</text><rect x="766.42" y="1092" width="84.936" height="50" fill="#FCE7F3" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="773.42" y="1115.56" fill="#000" font-size="12" textLength="70.936" font-family="'Hiragino Sans, Meiryo, sans-serif'">🧠 Analyzer</text><text x="774.616" y="1133.56" fill="#000" font-size="12" textLength="68.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(観察・分析)</text><rect x="908.108" y="1092" width="89.328" height="50" fill="#F3E8FF" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><text x="915.108" y="1115.56" fill="#000" font-size="12" textLength="75.328" font-family="'Hiragino Sans, Meiryo, sans-serif'">📝 Recorder</text><text x="924.5" y="1133.56" fill="#000" font-size="12" textLength="56.544" font-family="'Hiragino Sans, Meiryo, sans-serif'">(対戦履歴)</text><rect x="10" y="136" width="987.436" height="3" fill="#EEE" style="stroke:#EEE;stroke-width:1;"/><line x1="10" y1="136" x2="997.436" y2="136" style="stroke:#000;stroke-width:1;"/><line x1="10" y1="139" x2="997.436" y2="139" style="stroke:#000;stroke-width:1;"/><rect x="458.72" y="124" width="89.996" height="26" fill="#EEE" style="stroke:#000;stroke-width:2;"/><text x="464.72" y="144.56" fill="#000" font-size="12" textLength="72" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">ラウンド開始</text><line x1="165.268" y1="184" x2="207.268" y2="184" style="stroke:#181818;stroke-width:1;"/><line x1="207.268" y1="184" x2="207.268" y2="197" style="stroke:#181818;stroke-width:1;"/><line x1="166.268" y1="197" x2="207.268" y2="197" style="stroke:#181818;stroke-width:1;"/><polygon points="176.268,193,166.268,197,176.268,201,172.268,197" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="172.268" y="180.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">1</text><text x="184.152" y="180.56" fill="#000" font-size="12" textLength="240" font-family="'Hiragino Sans, Meiryo, sans-serif'">画面に「じゃんけん、最初はグー！」と表示</text><path d="M36.998,209 L216.758,209 L216.758,219 L206.758,229 L36.998,229 L36.998,209" style="stroke:#000;stroke-width:1.5;" fill="#EEE"/><rect x="36.998" y="209" width="526.306" height="158" fill="none" style="stroke:#000;stroke-width:1.5;"/><text x="51.998" y="226.56" fill="#000" font-size="12" textLength="134.76" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">1. プレイヤーの手を決定</text><polygon points="535.304,259,545.304,263,535.304,267,539.304,263" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="165.268" y1="263" x2="541.304" y2="263" style="stroke:#181818;stroke-width:1;"/><text x="306.91" y="259.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">2</text><text x="318.794" y="259.56" fill="#000" font-size="12" textLength="86.868" font-family="'Hiragino Sans, Meiryo, sans-serif'">choose_hand()</text><polygon points="63.998,291,53.998,295,63.998,299,59.998,295" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="57.998" y1="295" x2="546.304" y2="295" style="stroke:#181818;stroke-width:1;"/><text x="186.917" y="291.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">3</text><text x="198.801" y="291.56" fill="#000" font-size="12" textLength="214.584" font-family="'Hiragino Sans, Meiryo, sans-serif'">選択肢を案内 (1:グー, 2:チョキ, 3:パー)</text><polygon points="535.304,323,545.304,327,535.304,331,539.304,327" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="52.998" y1="327" x2="541.304" y2="327" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"/><text x="262.535" y="323.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">4</text><text x="274.467" y="323.56" fill="#000" font-size="12" textLength="63.3" font-family="'Hiragino Sans, Meiryo, sans-serif'">入力 (例: 1)</text><polygon points="176.268,355,166.268,359,176.268,363,172.268,359" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="170.268" y1="359" x2="546.304" y2="359" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"/><text x="273.13" y="355.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">5</text><text x="285.014" y="355.56" fill="#000" font-size="12" textLength="154.428" font-family="'Hiragino Sans, Meiryo, sans-serif'">player_hand (Hand.ROCK)</text><path d="M149.268,385 L353.556,385 L353.556,395 L343.556,405 L149.268,405 L149.268,385" style="stroke:#000;stroke-width:1.5;" fill="#EEE"/><rect x="149.268" y="385" width="819.504" height="296" fill="none" style="stroke:#000;stroke-width:1.5;"/><text x="164.268" y="402.56" fill="#000" font-size="12" textLength="159.288" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">2. AIの手を決定 (癖読み推論)</text><polygon points="603.54,435,613.54,439,603.54,443,607.54,439" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="165.268" y1="439" x2="609.54" y2="439" style="stroke:#181818;stroke-width:1;"/><text x="341.028" y="435.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">6</text><text x="352.912" y="435.56" fill="#000" font-size="12" textLength="86.868" font-family="'Hiragino Sans, Meiryo, sans-serif'">choose_hand()</text><polygon points="796.888,467,806.888,471,796.888,475,800.888,471" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="615.54" y1="471" x2="802.888" y2="471" style="stroke:#181818;stroke-width:1;"/><text x="658.548" y="467.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">7</text><text x="670.432" y="467.56" fill="#000" font-size="12" textLength="95.448" font-family="'Hiragino Sans, Meiryo, sans-serif'">get_best_hand()</text><polygon points="940.772,499,950.772,503,940.772,507,944.772,503" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="808.888" y1="503" x2="946.772" y2="503" style="stroke:#181818;stroke-width:1;"/><text x="837.526" y="499.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">8</text><text x="849.41" y="499.56" fill="#000" font-size="12" textLength="74.724" font-family="'Hiragino Sans, Meiryo, sans-serif'">get_history()</text><polygon points="819.888,531,809.888,535,819.888,539,815.888,535" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="813.888" y1="535" x2="951.772" y2="535" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"/><text x="820.888" y="531.56" fill="#000" font-size="12" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">9</text><text x="832.772" y="531.56" fill="#000" font-size="12" textLength="108" font-family="'Hiragino Sans, Meiryo, sans-serif'">過去の対戦ログ一覧</text><path d="M694.954,548 L694.954,612 L921.954,612 L921.954,558 L911.954,548 L694.954,548" style="stroke:#181818;stroke-width:0.5;" fill="#FFFBEB"/><path d="M911.954,548 L911.954,558 L921.954,558 L911.954,548" style="stroke:#181818;stroke-width:0.5;" fill="#FFFBEB"/><text x="700.954" y="569.56" fill="#000" font-size="12" textLength="120" font-family="'Hiragino Sans, Meiryo, sans-serif'">【思考アルゴリズム】</text><text x="700.954" y="587.56" fill="#000" font-size="12" textLength="204" font-family="'Hiragino Sans, Meiryo, sans-serif'">過去ログからプレイヤーの傾向を分析</text><text x="700.954" y="605.56" fill="#000" font-size="12" textLength="206.868" font-family="'Hiragino Sans, Meiryo, sans-serif'">例: 相手はグーが多い → パーを選択！</text><polygon points="626.54,637,616.54,641,626.54,645,622.54,641" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="620.54" y1="641" x2="807.888" y2="641" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"/><text x="627.54" y="637.56" fill="#000" font-size="12" textLength="15.768" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">10</text><text x="647.308" y="637.56" fill="#000" font-size="12" textLength="149.58" font-family="'Hiragino Sans, Meiryo, sans-serif'">best_hand (Hand.PAPER)</text><polygon points="176.268,669,166.268,673,176.268,677,172.268,673" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="170.268" y1="673" x2="614.54" y2="673" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"/><text x="313.83" y="669.56" fill="#000" font-size="12" textLength="15.768" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">11</text><text x="333.598" y="669.56" fill="#000" font-size="12" textLength="133.38" font-family="'Hiragino Sans, Meiryo, sans-serif'">ai_hand (Hand.PAPER)</text><path d="M149.268,699 L369.564,699 L369.564,709 L359.564,719 L149.268,719 L149.268,699" style="stroke:#000;stroke-width:1.5;" fill="#EEE"/><rect x="149.268" y="699" width="353.792" height="219" fill="none" style="stroke:#000;stroke-width:1.5;"/><text x="164.268" y="716.56" fill="#000" font-size="12" textLength="175.296" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">3. 開示・判定 (審判) ・結果表示</text><line x1="165.268" y1="771" x2="207.268" y2="771" style="stroke:#181818;stroke-width:1;"/><line x1="207.268" y1="771" x2="207.268" y2="784" style="stroke:#181818;stroke-width:1;"/><line x1="166.268" y1="784" x2="207.268" y2="784" style="stroke:#181818;stroke-width:1;"/><polygon points="176.268,780,166.268,784,176.268,788,172.268,784" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="172.268" y="758.56" fill="#000" font-size="12" textLength="15.768" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">12</text><text x="229.384" y="749.56" fill="#000" font-size="12" textLength="120" font-family="'Hiragino Sans, Meiryo, sans-serif'">画面に双方の手を表示</text><text x="192.036" y="767.56" fill="#000" font-size="12" textLength="194.696" font-family="'Hiragino Sans, Meiryo, sans-serif'">「あなた: ✊ グー vs AI: ✋ パー」</text><line x1="165.268" y1="834" x2="207.268" y2="834" style="stroke:#181818;stroke-width:1;"/><line x1="207.268" y1="834" x2="207.268" y2="847" style="stroke:#181818;stroke-width:1;"/><line x1="166.268" y1="847" x2="207.268" y2="847" style="stroke:#181818;stroke-width:1;"/><polygon points="176.268,843,166.268,847,176.268,851,172.268,847" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="172.268" y="821.56" fill="#000" font-size="12" textLength="15.768" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">13</text><text x="198.402" y="812.56" fill="#000" font-size="12" textLength="165.552" font-family="'Hiragino Sans, Meiryo, sans-serif'">judge(player_hand, ai_hand)</text><text x="192.036" y="830.56" fill="#000" font-size="12" textLength="178.284" font-family="'Hiragino Sans, Meiryo, sans-serif'">→ 勝敗判定 (Judgement.LOSE)</text><line x1="165.268" y1="897" x2="207.268" y2="897" style="stroke:#181818;stroke-width:1;"/><line x1="207.268" y1="897" x2="207.268" y2="910" style="stroke:#181818;stroke-width:1;"/><line x1="166.268" y1="910" x2="207.268" y2="910" style="stroke:#181818;stroke-width:1;"/><polygon points="176.268,906,166.268,910,176.268,914,172.268,910" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><text x="172.268" y="884.56" fill="#000" font-size="12" textLength="15.816" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">14</text><text x="276.072" y="875.56" fill="#000" font-size="12" textLength="120" font-family="'Hiragino Sans, Meiryo, sans-serif'">画面に判定結果を表示</text><text x="192.084" y="893.56" fill="#000" font-size="12" textLength="287.976" font-family="'Hiragino Sans, Meiryo, sans-serif'">「AIの勝ち！AIはあなたの癖を見抜いたようです！」</text><path d="M149.268,936 L269.076,936 L269.076,946 L259.076,956 L149.268,956 L149.268,936" style="stroke:#000;stroke-width:1.5;" fill="#EEE"/><rect x="149.268" y="936" width="819.504" height="94" fill="none" style="stroke:#000;stroke-width:1.5;"/><text x="164.268" y="953.56" fill="#000" font-size="12" textLength="74.808" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">4. 履歴の保存</text><polygon points="940.772,986,950.772,990,940.772,994,944.772,990" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="165.268" y1="990" x2="946.772" y2="990" style="stroke:#181818;stroke-width:1;"/><text x="407.638" y="986.56" fill="#000" font-size="12" textLength="15.768" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">15</text><text x="427.406" y="986.56" fill="#000" font-size="12" textLength="282.996" font-family="'Hiragino Sans, Meiryo, sans-serif'">add_record(round, player_hand, ai_hand, result)</text><polygon points="176.268,1018,166.268,1022,176.268,1026,172.268,1022" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="170.268" y1="1022" x2="951.772" y2="1022" style="stroke:#181818;stroke-width:1;stroke-dasharray:2,2;"/><text x="525.136" y="1018.56" fill="#000" font-size="12" textLength="15.768" font-weight="700" font-family="'Hiragino Sans, Meiryo, sans-serif'">16</text><text x="544.904" y="1018.56" fill="#000" font-size="12" textLength="48" font-family="'Hiragino Sans, Meiryo, sans-serif'">保存完了</text><path d="M34.498,1049 L34.498,1077 L295.498,1077 L295.498,1059 L285.498,1049 L34.498,1049" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD"/><path d="M285.498,1049 L285.498,1059 L295.498,1059 L285.498,1049" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD"/><text x="40.498" y="1070.56" fill="#000" font-size="12" textLength="240.54" font-family="'Hiragino Sans, Meiryo, sans-serif'">次のラウンドへループ (または総合結果表示)</text><?plantuml-src TLLRJnj757xVNt44BxPah09DKo5HoG6lahPfBAE-8Q6DFJ7RmYxTjIEH9yzkWWmcX4jhGe8X80S8DpTDgbA8o7_9OTVcgVq9FJDh6qFeobhjpBdCTxxldB7zisvCQ9Os3cdsGCkDPLNJoFwWZJFekArRMaOtJ1ZI33i2TvbkJPeHi6dLPJDBVz2XsDT53-cF67Jtj1bjzakE6Ibsbzcsbc6nCJrZG8ePMMOfYfRBcaPk_BxyJcLD2ph-NL-e0BhBwEwZKq6NVX-6ZT3PyV5vQIdS0PeDFn82XR9dzPG-eHbP4JIt3uEwnKGEyZxF_r7Vc4NtfBwnKwiSquTNVUCLAa7y87J6lr1xrFZL92j5I8nfayoIRWdeLEDgxy3DgswL4iJkI9VO7UWS7507uf_vRB-2cA6DJJvY0azzwvrNNHSm2bF-sdm08qRvALBjlHgxL8OaIvbMMiPwrLE_iEMzVUqVl0y2anJO6_zQLHMblv-uUeFE5hhlq9q-BnMzxIBqzolA87HzGvNsGUtNa_Fo9l8zpCyYVuwEYyuIyWNnpdD_DUyLoiYhwFnEJF_pWMF-AVATW3X5oLXcReBuKjMlL1MwerUbGNxeJnVHMVJV7dk7BnIWHnwTeADJewPfiv5HpKY7mjAK42QX7rdF-P4_irPtDaNqHi6RUWAXxhu0HmHw-j3bw6wZSn21Nbeiq7QGHCPtDSxmdhpsPbv2wEoqs0VThLCQnKz8EIK22DscTpHvR-2xiCACTAksG6JeYPASLyg1K6sbLDyzGFxHdzkfxvN25mMIzjTLIDl2IBOCouxSPtRsabKOamtZg6vJkqusJ4a9EYQ9cVFcJWXA83sw1qJAsL6-lhKjFGqpoy1yI2I85bBLM_5RSbyyc9_ty-LwdaJUH7SFdVVexg938_0AymijjyOHCZDoAdZwSrqzvzIRfpPP39gs5IkPhhqy4aGr-mRvh5TvWVmnV9fQX40iYWmafgQImKIwnDvaeabYYwI6H8bO8fwyOBCXfQPVuzEkOtn07LHlG6yKQ0mQKr-eI1KRqq_0Jcf_pljhgutsRebvQL2yPxD-wUzMAmI-muQS7mVvBlBrFlYqEWD1xV1GN0HYfzYiFF_qSkgVSkaC2xKrOwHPJdZO48nvnRB_st8JxhV2VPpkoEZtzuRYuV-3ARs3UYx3b7rCAP5l4FTYLMqX9mlrjF3VAlepgoIPs7GAoAUGRoDV2Qw0onCIKs_Gz7yPXU0QeXnd7ylUmVCBPAAdjNHwn98NLuZYH97NLHm1YzdqTz7UzQAk8ADtE7jsF1MSVj7dmkxlRz2vxRSTyYFHuiItkmmXvAUol6hjhsVUVA5Tvx3o7m00?></g></svg>
+    </div>
+
+    <div class="card" style="margin-top: 10px;">
+      <strong>🔄 処理サイクルのポイント</strong><br>
+      ① <code>Director</code> が進行役となり、プレイヤーとAIの双方から手を集めます。<br>
+      ② <code>AI</code> は <code>Analyzer</code> に最善手を尋ね、<code>Analyzer</code> は <code>Recorder</code> の過去戦績から手を推論します。<br>
+      ③ <code>Director</code> が審判として勝敗を判定・表示し、結果を <code>Recorder</code> に保存して次のラウンドへ繋ぎます。
+    </div>
+
+    <!-- PAGE 4: アルゴリズム強化 & ロードマップ -->
+    <div class="page-break"></div>
+
+    <h2>5. 思考エンジン（Analyzer）の強化アイデア</h2>
+    <p>文化祭の展示に向けて、段階的にAIの賢さをアップデートしていきましょう！</p>
+    <ul>
+      <li><span class="badge">Lv.1</span> <strong>序盤（3戦未満: データ収集期）:</strong><br>
+        過去データが少ないため、<code>random.choice()</code> で完全ランダムに手を出し、相手の手の内を観察します。
+      </li>
+      <li><span class="badge">Lv.2</span> <strong>中盤（最頻手カウンター期）:</strong><br>
+        プレイヤーが最も多く出している手（例: グーが全体の50%）を集計し、その手に勝つ手（パー）を選択します。
+      </li>
+      <li><span class="badge">Lv.3</span> <strong>終盤（心理・直前遷移読み期）:</strong><br>
+        「人間がじゃんけんで無意識にとる行動パターン（心理傾向）」を確率モデル（マルコフ連鎖）で予測します：
+        <ul>
+          <li><strong>勝った後:</strong> 同じ手をもう一度出したくなる傾向</li>
+          <li><strong>負けた後:</strong> 手を変えたくなり、直前に相手が勝った手を真似しやすい傾向</li>
+          <li><strong>あいこの後:</strong> 直前と同じ手を出さず、別の手に変える傾向</li>
+        </ul>
+      </li>
+      <li><span class="badge">演出</span> <strong>文化祭を盛り上げる演出アイデア:</strong><br>
+        対戦終了後に「【AI診断レポート】あなたは追い詰められるとチョキを出す癖があります！」といった分析結果や、対戦成績のグラフを表示すると、体験者が大盛り上がりします！
+      </li>
+    </ul>
+
+    <h2>6. 今後の開発ステップ</h2>
+    <ol>
+      <li><strong>Step 1 (基本機能):</strong> <code>Hand</code>, <code>Judgement</code>, <code>Player</code>, <code>Director</code> を作り、コンソールで1回勝負ができるようにする。</li>
+      <li><strong>Step 2 (データ蓄積):</strong> <code>Recorder</code> を作り、対戦履歴をリストで保持できるようにする。</li>
+      <li><strong>Step 3 (AI進化):</strong> <code>Analyzer</code> を作り、過去ログから最頻手を計算して勝つ手を出すロジックを実装する。</li>
+      <li><strong>Step 4 (展示向け演出):</strong> アスキーアート（AA）や絵文字による手の表示、診断サマリー表示を実装する。</li>
+    </ol>
+
+    <div class="footer-note">
+      🎉 素晴らしいアーキテクチャが完成しました！自信を持って実装を進めていきましょう！
+    </div>
+  </div>
+</body>
+</html>
