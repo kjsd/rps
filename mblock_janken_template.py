@@ -52,15 +52,6 @@ class JankenBrain:
           - WIN  (1): あなたの勝ち
           - LOSE (2): あなたの負け
         """
-        # --- ヒント ---
-        # 1. 2人の手が同じなら？ -> return DRAW
-        # 2. あなたが勝つパターン:
-        #    - あなたがグー(ROCK) かつ AIがチョキ(SCISSORS)
-        #    - あなたがチョキ(SCISSORS) かつ AIがパー(PAPER)
-        #    - あなたがパー(PAPER) かつ AIがグー(ROCK)
-        # 3. それ以外は？ -> return LOSE
-        # -------------
-
         # TODO: ここに勝敗判定のコードを書こう！
         if player_hand == ai_hand:
             return DRAW
@@ -89,23 +80,6 @@ class JankenBrain:
         【返す値（returnする値）】
           - AIが出す手（ROCK, SCISSORS, PAPER のどれか）
         """
-        # ======================================================================
-        # 💡 AI進化のステップ（好きなレベルに挑戦してね！）
-        #
-        # 【レベル 1: 初心者AI】
-        # まずはランダムに手を出してみよう！
-        # return random.choice([ROCK, SCISSORS, PAPER])
-        #
-        # 【レベル 2: 観察AI（相手の癖を読む！）】
-        # 相手が過去に一番多く出している手を調べて、その手に勝つ手を出そう！
-        #   ・相手がグーを多く出しているなら？ -> パー(PAPER)を出す！
-        #   ・相手がチョキを多く出しているなら？ -> グー(ROCK)を出す！
-        #   ・相手がパーを多く出しているなら？ -> チョキ(SCISSORS)を出す！
-        #
-        # ⚠️ 注意: mBlockの仕様上、関数の中に「for」や「while」を書くと
-        #    動かなくなってしまうので、「if / elif」を使って作ってね！
-        # ======================================================================
-
         # TODO: ここにAIの思考コードを書こう！（初期状態はレベル1のランダム思考です）
         return random.choice([ROCK, SCISSORS, PAPER])
 
@@ -159,7 +133,6 @@ class GameDirector:
         return ""
 
     def play_round(self, player_hand):
-        # 1. AIの手を決定（生徒さんの作った頭脳に相談）
         ai_hand = self.brain.choose_ai_hand(
             self.round_no,
             self.count_rock,
@@ -167,10 +140,8 @@ class GameDirector:
             self.count_paper
         )
 
-        # 2. 勝敗判定（生徒さんの作った審判に相談）
         result = self.brain.judge(player_hand, ai_hand)
 
-        # 3. 成績集計
         if result == WIN:
             self.wins += 1
         elif result == LOSE:
@@ -185,7 +156,6 @@ class GameDirector:
         elif player_hand == PAPER:
             self.count_paper += 1
 
-        # 4. メッセージ作成
         p_name = self.get_hand_name(player_hand)
         ai_name = self.get_hand_name(ai_hand)
         res_name = self.get_result_name(result)
@@ -216,14 +186,14 @@ class GameDirector:
         total = self.wins + self.losses + self.draws
         return (
             "🏆 【対戦終了！】 🏆\n" +
-            str(total) + "戦: " + str(self.wins) + "勝 " + str(self.losses) + "敗 " + str(self.draws) + "分け\n" +
+            str(total) + "戦: " + str(self.wins) + "勝 " + str(self.losses) + "敗 " + str(self.draws) + "分け\n\n" +
             "📊 AI分析: あなたの最多の手は「" + most_name + "」でした！\n" +
             "🚩 緑の旗でまた最初から対戦できるよ！"
         )
 
 
-# ゲーム管理インスタンスの生成
-game = GameDirector()
+# ゲーム管理インスタンスの生成（※予約語衝突を避けるため janken に命名）
+janken = GameDirector()
 
 
 # ==============================================================================
@@ -233,33 +203,33 @@ game = GameDirector()
 @event.greenflag
 def on_greenflag():
     try:
-        msg = game.start_game()
+        msg = janken.start_game()
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(greenflag): " + str(e))
 
 @event.keypressed("1")
 def on_key_1():
     try:
-        msg = game.play_round(ROCK)
+        msg = janken.play_round(ROCK)
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(key1): " + str(e))
 
 @event.keypressed("2")
 def on_key_2():
     try:
-        msg = game.play_round(SCISSORS)
+        msg = janken.play_round(SCISSORS)
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(key2): " + str(e))
 
 @event.keypressed("3")
 def on_key_3():
     try:
-        msg = game.play_round(PAPER)
+        msg = janken.play_round(PAPER)
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(key3): " + str(e))
 
 print("--- [AIじゃんけんシステム 準備完了！緑の旗を押してスタート] ---")

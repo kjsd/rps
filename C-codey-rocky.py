@@ -189,6 +189,9 @@ class GameDirector:
         return ""
 
     def play_round(self, player_hand):
+        if self.round_no > self.max_rounds:
+            self.start_game()
+
         # 1. AIの手を決定（生徒さんの作った頭脳に相談）
         ai_hand = self.brain.choose_ai_hand(
             self.round_no,
@@ -272,7 +275,7 @@ class GameDirector:
             "🏆 【対戦終了！】 🏆\n" +
             str(total) + "戦: " + str(self.wins) + "勝 " + str(self.losses) + "敗 " + str(self.draws) + "分け\n" +
             "📊 AI分析: あなたの最多の手は「" + most_name + "」でした！\n" +
-            "🚩 緑の旗でまた最初から対戦できるよ！"
+            "👉 [1][2][3]を押すと、また最初から対戦できるよ！"
         )
 
 

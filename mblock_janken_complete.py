@@ -1,11 +1,6 @@
 # ==============================================================================
 # 🎓 プログラミング教室用：AIじゃんけん 模範解答・完成版 (先生用 / デモ用)
 # ==============================================================================
-# 【模範解答】
-# ・【ミッション 1】じゃんけん勝敗判定ルール（judge）
-# ・【ミッション 2】相手の最多手を読んで裏をかく「最頻手カウンターAI」（choose_ai_hand）
-# が完全に実装されています。
-# ==============================================================================
 
 from mblock import event
 import random
@@ -28,13 +23,8 @@ LOSE = 2  # AIの勝ち
 # ==============================================================================
 
 class JankenBrain:
-    """
-    じゃんけんの「ルール」と「AIの頭脳」を決めるクラスです。
-    """
+    """じゃんけんの「ルール」と「AIの頭脳」を決めるクラス"""
 
-    # --------------------------------------------------------------------------
-    # 🎯【ミッション 1 模範解答】じゃんけんの勝敗判定
-    # --------------------------------------------------------------------------
     def judge(self, player_hand, ai_hand):
         """プレイヤーの手とAIの手を比べて、勝敗を判定する"""
         if player_hand == ai_hand:
@@ -47,19 +37,11 @@ class JankenBrain:
         else:
             return LOSE
 
-    # --------------------------------------------------------------------------
-    # 🎯【ミッション 2 模範解答】相手の癖を読む「最頻手カウンターAI」
-    # --------------------------------------------------------------------------
     def choose_ai_hand(self, round_no, count_rock, count_scissors, count_paper):
-        """
-        相手が一番多く出している手を調べ、その手に勝つ手を出す！
-        ※ mBlockの仕様に配慮し、forループを使わずに if/elif で安全に比較します。
-        """
-        # 1〜2回戦はデータが少ないため、ランダムに出して様子を見る
+        """相手の最多手を読んで勝つ手を出す（最頻手カウンターAI）"""
         if round_no <= 2:
             return random.choice([ROCK, SCISSORS, PAPER])
 
-        # 相手が一番多く出している手を調べる
         most_player_hand = ROCK
         max_count = count_rock
 
@@ -70,13 +52,12 @@ class JankenBrain:
         if count_paper > max_count:
             most_player_hand = PAPER
 
-        # 相手の最多の手「に勝つ手」を返す！
         if most_player_hand == ROCK:
-            return PAPER     # グーにはパーで勝つ！
+            return PAPER
         elif most_player_hand == SCISSORS:
-            return ROCK      # チョキにはグーで勝つ！
+            return ROCK
         else:
-            return SCISSORS  # パーにはチョキで勝つ！
+            return SCISSORS
 
 
 # ==============================================================================
@@ -127,7 +108,6 @@ class GameDirector:
         return ""
 
     def play_round(self, player_hand):
-        # 1. AIの手を決定（JankenBrainに相談）
         ai_hand = self.brain.choose_ai_hand(
             self.round_no,
             self.count_rock,
@@ -135,10 +115,8 @@ class GameDirector:
             self.count_paper
         )
 
-        # 2. 勝敗判定（JankenBrainに相談）
         result = self.brain.judge(player_hand, ai_hand)
 
-        # 3. 成績集計
         if result == WIN:
             self.wins += 1
         elif result == LOSE:
@@ -153,7 +131,6 @@ class GameDirector:
         elif player_hand == PAPER:
             self.count_paper += 1
 
-        # 4. メッセージ作成
         p_name = self.get_hand_name(player_hand)
         ai_name = self.get_hand_name(ai_hand)
         res_name = self.get_result_name(result)
@@ -190,8 +167,8 @@ class GameDirector:
         )
 
 
-# ゲーム管理インスタンスの生成
-game = GameDirector()
+# ゲーム管理インスタンスの生成（※予約語衝突を避けるため janken に命名）
+janken = GameDirector()
 
 
 # ==============================================================================
@@ -200,33 +177,33 @@ game = GameDirector()
 @event.greenflag
 def on_greenflag():
     try:
-        msg = game.start_game()
+        msg = janken.start_game()
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(greenflag): " + str(e))
 
 @event.keypressed("1")
 def on_key_1():
     try:
-        msg = game.play_round(ROCK)
+        msg = janken.play_round(ROCK)
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(key1): " + str(e))
 
 @event.keypressed("2")
 def on_key_2():
     try:
-        msg = game.play_round(SCISSORS)
+        msg = janken.play_round(SCISSORS)
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(key2): " + str(e))
 
 @event.keypressed("3")
 def on_key_3():
     try:
-        msg = game.play_round(PAPER)
+        msg = janken.play_round(PAPER)
         sprite.say(msg)
     except Exception as e:
-        print("エラー: " + str(e))
+        print("エラー(key3): " + str(e))
 
 print("--- [AIじゃんけんシステム 準備完了！緑の旗を押してスタート] ---")
