@@ -275,7 +275,7 @@ class GameDirector:
             "🏆 【対戦終了！】 🏆\n" +
             str(total) + "戦: " + str(self.wins) + "勝 " + str(self.losses) + "敗 " + str(self.draws) + "分け\n" +
             "📊 AI分析: あなたの最多の手は「" + most_name + "」でした！\n" +
-            "👉 [1][2][3]を押すと、また最初から対戦できるよ！"
+            "👉 スペースキーを押すと、また最初から対戦できるよ！"
         )
 
 
@@ -289,6 +289,14 @@ game = GameDirector()
 # ==============================================================================
 @event.greenflag
 def on_greenflag():
+    try:
+        msg = game.start_game()
+        sprite.say(msg)
+    except Exception as e:
+        print("エラー: " + str(e))
+
+@event.keypressed("space")
+def on_key_space():
     try:
         msg = game.start_game()
         sprite.say(msg)
